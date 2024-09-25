@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kanban-board-backend
+  labels:
+    app: kanban-board-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kanban-board-backend
+  template:
+    metadata:
+      labels:
+        app: kanban-board-backend
+        version: "2"
+    spec:
+      containers:
+        - name: kanban-board-postgresql
+          image: postgres:16.3-alpine3.20
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "kanboard_db_user"
+            - name: POSTGRES_PASSWORD
+              value: "kanboard_db_password"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+        - name: kanban-board-backend
+          image: simakovv/kanban-board-backend:v2
+          ports:
+            - containerPort: 3080
+          tty: true
+          volumeMounts:
+           - name: backend-conf
+             mountPath: /kanban-board/kanban-server/.env
+             subPath: .env
+      volumes:
+        - name: pgdata
+          emptyDir: {}
+        - name: backend-conf
+          configMap:
+            name: kanban-board-conf
+            items:
+              - key: kanban-backend.conf
+                path: .env

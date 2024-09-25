@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kanban-board-conf
+data:
+  kanban-frontend.conf: |
+    server {
+      listen 8080;
+      listen [::]:8080;
+
+      server_name kanban.live www.kanban.live;
+
+      root /kanban-board/kanban-client/build;
+
+      index index.html index.htm index.nginx-debian.html;
+
+      location / {
+        try_files $uri $uri/ /index.html;
+      }
+
+      location /api {
+        proxy_pass http://kanban-board-backend.default.svc.cluster.local:3080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+      }
+    }
+  kanban-backend.conf: |
+    DB_PROD_USERNAME=kanboard_db_user
+    DB_PROD_DIALECT=postgres
+    DB_PROD_PASSWORD=kanboard_db_password
+    DB_PROD_DATABASE=postgres
+    DB_PROD_HOST="localhost"
+    DB_PROD_PORT=5432
+    NODE_ENV="production"

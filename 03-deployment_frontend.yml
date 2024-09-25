@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kanban-board-frontend
+  labels:
+    app: kanban-board-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kanban-board-frontend
+  template:
+    metadata:
+      labels:
+        app: kanban-board-frontend
+        version: "2"
+    spec:
+      containers:
+        - name: kanban-board-frontend
+          image: simakovv/kanban-board-frontend:v2
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d/
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: kanban-board-conf
+            items:
+              - key: kanban-frontend.conf
+                path: kanban.conf
